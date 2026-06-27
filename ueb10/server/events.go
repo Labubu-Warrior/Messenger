@@ -14,7 +14,8 @@ var validNamePattern = regexp.MustCompile(VALID_NAME_PATTERN)
 
 func (s *ChatServer) handleRegister(req RegisterRequest) {
 	name := strings.TrimSpace(req.Name)
-	_, exists := s.clients[name]
+	_, activeExists := s.clients[name]
+	_, pendingExists := s.pendingNames[name]
 
 	if !isValidClientName(name) {
 		req.Resp <- RegisterResponse{
@@ -22,7 +23,7 @@ func (s *ChatServer) handleRegister(req RegisterRequest) {
 			Reason: protocol.RESPONSE_NAME_INVALID,
 			Client: nil,
 		}
-	} else if exists {
+	} else if activeExists || pendingExists {
 		req.Resp <- RegisterResponse{
 			OK:     false,
 			Reason: protocol.RESPONSE_NAME_TAKEN,
@@ -30,7 +31,7 @@ func (s *ChatServer) handleRegister(req RegisterRequest) {
 		}
 	} else {
 		client := NewConnectedClient(name, req.Conn)
-		s.clients[name] = client
+		s.pendingNames[name] = struct{}{}
 
 		req.Resp <- RegisterResponse{
 			OK:     true,
@@ -41,19 +42,25 @@ func (s *ChatServer) handleRegister(req RegisterRequest) {
 }
 
 func isValidClientName(name string) bool {
-	return validNamePattern.MatchString(name)
+	return len(name) <= protocol.MAX_NAME_LENGTH && validNamePattern.MatchString(name)
 }
 
 func (s *ChatServer) handleJoin(client *ConnectedClient) {
+	delete(s.pendingNames, client.Name)
+	s.clients[client.Name] = client
+
 	names := s.getClientNames(client.Name)
 
-	s.sendOrLog(client, protocol.RESPONSE_NAME_OK)
 	s.sendOrLog(client, protocol.MESSAGE_CLIENTS_PREFIX+strings.Join(names, ","))
 
 	systemText := fmt.Sprintf(protocol.TEXT_SYSTEM_JOIN, client.Name)
 	s.sendToAllExcept(client.Name, systemText)
 
 	fmt.Printf(protocol.SERVER_TEXT_CLIENT_CONNECTED, client.Name)
+}
+
+func (s *ChatServer) handleCancelPending(name string) {
+	delete(s.pendingNames, name)
 }
 
 func (s *ChatServer) handleLeave(client *ConnectedClient) {

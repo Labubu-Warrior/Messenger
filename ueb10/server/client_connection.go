@@ -23,10 +23,23 @@ func (s *ChatServer) HandleRegistration(conn net.Conn) {
 			return
 		}
 
+		if isLineTooLong(line) {
+			fmt.Fprintf(conn, "%s\n", protocol.RESPONSE_NAME_INVALID)
+			continue
+		}
+
 		result := s.tryRegister(conn, line)
 
 		if result.OK {
 			client = result.Client
+			_, err = fmt.Fprintf(conn, "%s\n", protocol.RESPONSE_NAME_OK)
+
+			if err != nil {
+				s.cancelPending <- client.Name
+				conn.Close()
+				return
+			}
+
 			registered = true
 		} else {
 			fmt.Fprintf(conn, "%s\n", result.Reason)
@@ -49,10 +62,10 @@ func (s *ChatServer) tryRegister(conn net.Conn, name string) RegisterResponse {
 }
 
 func (s *ChatServer) startClient(client *ConnectedClient, reader *bufio.Reader) {
+	s.join <- client
+
 	go s.WriteLoop(client)
 	go s.ReadLoop(client, reader)
-
-	s.join <- client
 }
 
 // ReadLoop liest dauerhaft Befehle von einem angemeldeten Client.
@@ -65,6 +78,11 @@ func (s *ChatServer) ReadLoop(client *ConnectedClient, reader *bufio.Reader) {
 			return
 		}
 
+		if isLineTooLong(line) {
+			s.sendOrLog(client, protocol.ERROR_LINE_TOO_LONG)
+			continue
+		}
+
 		if s.isQuitCommand(line) {
 			s.sendOrLog(client, protocol.MESSAGE_GOODBYE)
 			s.leave <- client
@@ -73,6 +91,10 @@ func (s *ChatServer) ReadLoop(client *ConnectedClient, reader *bufio.Reader) {
 
 		s.handleClientInput(client, line)
 	}
+}
+
+func isLineTooLong(line string) bool {
+	return len(strings.TrimRight(line, "\r\n")) > protocol.MAX_LINE_LENGTH
 }
 
 func (s *ChatServer) isQuitCommand(line string) bool {

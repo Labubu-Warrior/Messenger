@@ -49,8 +49,8 @@ func main() {
 
 	done := make(chan bool, 1)
 
-	go client.ReadLoop(done)
+	go client.ReadLoop(done) // funktion mit ReadLoop hier einbauen
 
-	client.WriteLoop()
+	client.WriteLoop(stdin)
 	<-done
 }

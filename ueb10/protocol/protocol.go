@@ -39,12 +39,15 @@ const (
 const (
 	MIN_MESSAGE_PARTS = 2
 	MIN_PRIVATE_PARTS = 3
+	MAX_NAME_LENGTH   = 20
+	MAX_LINE_LENGTH   = 512
 )
 
 // Fehlermeldungen vom Server an Clients
 const (
 	ERROR_RECEIVER_NOT_FOUND = "ERROR: Empfänger nicht gefunden"
 	ERROR_MESSAGE_MISSING    = "ERROR: Nachricht fehlt"
+	ERROR_LINE_TOO_LONG      = "ERROR: Zeile zu lang"
 	ERROR_UNKNOWN_COMMAND    = "ERROR: Unbekannter Befehl"
 	ERROR_PRIVATE_USAGE      = "ERROR: Verwendung: PRIVMSG <Name> <Text>"
 )
@@ -52,7 +55,7 @@ const (
 // Fehlermeldungen für Registrierung im Client
 const (
 	ERROR_NAME_TAKEN   = "Name schon vergeben"
-	ERROR_NAME_INVALID = "Name ungültig: nur Buchstaben, Zahlen, _ und - erlaubt"
+	ERROR_NAME_INVALID = "Name ungültig: maximal 20 Zeichen, nur Buchstaben, Zahlen, _ und - erlaubt"
 )
 
 // Textvorlagen für Chatnachrichten
@@ -77,7 +80,7 @@ const (
 const (
 	CLIENT_TEXT_CONNECTION_CLOSED = "[Chat] Verbindung beendet."
 	CLIENT_TEXT_ASK_NAME          = "[Chat] Bitte Namen eingeben."
-	CLIENT_TEXT_ALLOWED_NAME      = "[Chat] Erlaubt sind Buchstaben, Zahlen, _ und -"
+	CLIENT_TEXT_ALLOWED_NAME      = "[Chat] Erlaubt: maximal 20 Zeichen, Buchstaben, Zahlen, _ und -"
 	CLIENT_TEXT_INPUT_ERROR       = "[Chat] Eingabefehler."
 	CLIENT_TEXT_COMMANDS          = "[Chat] Befehle: msg <Text>, privmsg <Name> <Text>, list, quit"
 	CLIENT_TEXT_NO_CLIENTS        = "[Chat] Bereits angemeldete Clients: keine"

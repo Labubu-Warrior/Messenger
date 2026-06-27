@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"os"
 	"strings"
 	"ueb10/protocol"
 )
@@ -157,9 +156,7 @@ func (c *ChatClient) sendPrivateCommand(parts []string) {
 }
 
 // WriteLoop liest Benutzereingaben von der Konsole und sendet sie an den Server.
-func (c *ChatClient) WriteLoop() {
-	stdin := bufio.NewReader(os.Stdin)
-
+func (c *ChatClient) WriteLoop(stdin *bufio.Reader) {
 	for {
 		fmt.Print(protocol.CLIENT_TEXT_INPUT_PROMPT)
 		line, err := stdin.ReadString('\n')

@@ -10,26 +10,30 @@ import (
 // Die clients-Map wird nur in der Run-Schleife verändert.
 // Dadurch braucht der Server keinen Mutex.
 type ChatServer struct {
-	register  chan RegisterRequest
-	join      chan *ConnectedClient
-	leave     chan *ConnectedClient
-	broadcast chan BroadcastMessage
-	private   chan PrivateMessage
-	listReq   chan *ConnectedClient
+	register      chan RegisterRequest
+	cancelPending chan string
+	join          chan *ConnectedClient
+	leave         chan *ConnectedClient
+	broadcast     chan BroadcastMessage
+	private       chan PrivateMessage
+	listReq       chan *ConnectedClient
 
-	clients map[string]*ConnectedClient
+	clients      map[string]*ConnectedClient
+	pendingNames map[string]struct{}
 }
 
 // NewChatServer erstellt einen neuen ChatServer mit allen benötigten Kanälen.
 func NewChatServer() *ChatServer {
 	return &ChatServer{
-		register:  make(chan RegisterRequest),
-		join:      make(chan *ConnectedClient),
-		leave:     make(chan *ConnectedClient),
-		broadcast: make(chan BroadcastMessage),
-		private:   make(chan PrivateMessage),
-		listReq:   make(chan *ConnectedClient),
-		clients:   make(map[string]*ConnectedClient),
+		register:      make(chan RegisterRequest),
+		cancelPending: make(chan string),
+		join:          make(chan *ConnectedClient),
+		leave:         make(chan *ConnectedClient),
+		broadcast:     make(chan BroadcastMessage),
+		private:       make(chan PrivateMessage),
+		listReq:       make(chan *ConnectedClient),
+		clients:       make(map[string]*ConnectedClient),
+		pendingNames:  make(map[string]struct{}),
 	}
 }
 
@@ -40,6 +44,9 @@ func (s *ChatServer) Run() {
 		select {
 		case req := <-s.register:
 			s.handleRegister(req)
+
+		case name := <-s.cancelPending:
+			s.handleCancelPending(name)
 
 		case client := <-s.join:
 			s.handleJoin(client)
