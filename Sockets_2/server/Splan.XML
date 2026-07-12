@@ -1,0 +1,21 @@
+<stundenplan>
+    <mitarbeiter>
+        <typ>
+            <id>1</id>
+            <person><id>1</id><bezeichnung><kuerzel>ahr</kuerzel></bezeichnung></person>
+            <person><id>2</id><bezeichnung><kuerzel>wol</kuerzel></bezeichnung></person>
+            <person><id>3</id><bezeichnung><kuerzel>xyz</kuerzel></bezeichnung></person>
+        </typ>
+    </mitarbeiter>
+
+    <tag><id>1</id><name>Montag</name></tag>
+    <tag><id>2</id><name>Dienstag</name></tag>
+
+    <zeit><id>1</id><start>08:00</start><ende>09:15</ende></zeit>
+    <zeit><id>2</id><start>15:30</start><ende>16:45</ende></zeit>
+
+    <!-- 'ahr' (ID 1) hat am Montag (ID 1) um 08:00 (ID 1) Unterricht -->
+    <veranstaltung><person_id>1</person_id><tag_id>1</tag_id><zeit_id>1</zeit_id></veranstaltung>
+    <!-- 'wol' (ID 2) hat am Dienstag (ID 2) um 15:30 (ID 2) Unterricht -->
+    <veranstaltung><person_id>2</person_id><tag_id>2</tag_id><zeit_id>2</zeit_id></veranstaltung>
+</stundenplan>
